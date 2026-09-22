@@ -54,14 +54,16 @@
     }
     .brand-left { display: flex; align-items: center; gap: 16px; z-index: 1; }
     .brand-logo {
-      width: 56px; height: 56px;
-      background: rgba(255,255,255,0.18);
-      border: 2px solid rgba(255,255,255,0.35);
+      width: 64px; height: 64px;
+      background: #ffffff;
+      border: 2px solid rgba(255,255,255,0.55);
       border-radius: 18px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.6rem; color: #fff;
-      backdrop-filter: blur(4px);
+      padding: 6px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      flex-shrink: 0;
     }
+    .brand-logo img { height: 100%; width: auto; display: block; }
     .brand-title .hindi   { font-size: 1.25rem; font-weight: 700; color:#fff; letter-spacing:0.3px; }
     .brand-title .english { font-size: 0.95rem; font-weight: 500; color:#e0f2fe; text-transform:uppercase; letter-spacing:1.2px; margin-top:2px; }
     .brand-subtitle       { font-size: 0.78rem; color: #bae6fd; margin-top: 4px; letter-spacing: 0.4px; }
@@ -146,10 +148,29 @@
       font-size: 1.05rem; font-weight: 500; text-align: left;
       cursor: pointer; transition: 0.15s;
       display: flex; align-items: center; gap: 12px;
+      font-family: inherit;
+      color: #1e293b;
     }
-    .option-btn i { font-size: 1.2rem; color: #64748b; width: 24px; }
+    .option-btn i {
+      font-size: 1.2rem;
+      color: #64748b;
+      width: 24px;
+      text-align: center;
+      transition: color 0.15s, transform 0.15s;
+      flex-shrink: 0;
+    }
+    .option-btn span { flex: 1; }
     .option-btn:hover:not(:disabled) { background: #e2e8f0; border-color: #94a3b8; }
-    .option-btn.selected { background: #dbeafe; border-color: #2563eb; color: #1e3a8a; }
+    .option-btn.selected {
+      background: #dbeafe;
+      border-color: #2563eb;
+      color: #1e3a8a;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    .option-btn.selected i {
+      color: #2563eb;
+      transform: scale(1.1);
+    }
     .option-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
     /* ================= COMPLETION ================= */
@@ -171,23 +192,23 @@
       .login-grid, .options-grid { grid-template-columns: 1fr; }
       .brand-title .hindi { font-size: 1rem; }
       .brand-title .english { font-size: 0.8rem; }
+      .brand-logo { width: 52px; height: 52px; }
     }
   </style>
 </head>
 <body>
 <div class="app-container">
 
-  <!-- ================= HEADER (no admin button) ================= -->
+  <!-- ================= HEADER ================= -->
   <div class="brand-header">
     <div class="brand-left">
-      <div class="brand-logo"><i class="fas fa-brain"></i></div>
+      <div class="brand-logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/c/cc/SBI-logo.svg" alt="SBI">
+      </div>
       <div class="brand-title">
-        <div class="hindi"> अनुवाद प्रतियोगिता 2026 </div>
-        <div class="english">Translation Competition 2026</div>
-       <div class="brand-logo" style="background:#fff; padding:6px;">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/c/cc/SBI-logo.svg"
-       alt="SBI" style="height:36px; width:auto;">
-</div>
+        <div class="hindi">द्विभाषी प्रश्नोत्तरी</div>
+        <div class="english">Bilingual Quiz Portal</div>
+        <div class="brand-subtitle">SBI HRMS · Learning &amp; Development</div>
       </div>
     </div>
   </div>
@@ -209,13 +230,15 @@
           <input type="text" id="designation" required>
         </div>
         <div class="field">
-          <label>कर्मचारी संख्या / Emp.No.</label>
-          <input type="text" id="empNo" required autocomplete="off">
+          <label>कर्मचारी संख्या / Emp.No. (7 digits)</label>
+          <input type="text" id="empNo" required autocomplete="off"
+                 inputmode="numeric" maxlength="7" pattern="[0-9]{7}"
+                 placeholder="7-digit number">
           <div class="emp-status" id="empStatus"></div>
         </div>
         <div class="field">
           <label>मोबाइल / Mobile</label>
-          <input type="tel" id="mobile" required>
+          <input type="tel" id="mobile" required maxlength="10" inputmode="numeric">
         </div>
         <div class="field">
           <label>मॉड्यूल / Module</label>
@@ -288,7 +311,7 @@
 
 <script>
   // ⚠️ REPLACE with your deployed Web App URL
-  const API_URL = 'https://script.google.com/macros/s/AKfycbyCS2NI7GMc2__yxtokn__S4-pk3nqhUwz1tZzD7TkuGelzWsgV_yrd5lx9nQZeI8TV/exec';
+  const API_URL = 'https://script.google.com/macros/s/AKfycb.../exec';
   const TIMER_SECONDS = 30;
 
   let currentUser          = null;
@@ -384,14 +407,23 @@
     }
   }
 
-  // Emp.No. live check
+  // ---------- Emp.No. live check (7 digits, digits only) ----------
   empNoInput.addEventListener('input', () => {
+    // Strip non-digits
+    empNoInput.value = empNoInput.value.replace(/[^0-9]/g, '');
     const val = empNoInput.value.trim();
+
     if (empCheckTimeout) clearTimeout(empCheckTimeout);
     empStatus.textContent = '';
     empStatus.className = 'emp-status';
 
     if (!val) return;
+
+    if (!/^[0-9]{7}$/.test(val)) {
+      empStatus.textContent = '⚠ Emp.No. must be exactly 7 digits.';
+      empStatus.className = 'emp-status duplicate';
+      return;
+    }
 
     empStatus.textContent = 'Checking...';
     empStatus.classList.add('checking');
@@ -419,8 +451,9 @@
 
     q.options.forEach((opt, i) => {
       const btn = document.createElement('button');
+      btn.type = 'button';
       btn.className = 'option-btn';
-      btn.innerHTML = `<i class="far fa-circle"></i> ${opt}`;
+      btn.innerHTML = `<i class="far fa-circle"></i> <span>${opt}</span>`;
       btn.addEventListener('click', () => handleOptionSelect(i, btn));
       optionsGrid.appendChild(btn);
     });
@@ -460,9 +493,19 @@
 
   function handleOptionSelect(optIndex, btnElement) {
     if (!quizActive) return;
-    document.querySelectorAll('.option-btn')
-      .forEach(b => b.classList.remove('selected'));
+
+    // Reset all options to empty circle, remove highlight
+    document.querySelectorAll('.option-btn').forEach(b => {
+      b.classList.remove('selected');
+      const icon = b.querySelector('i');
+      if (icon) icon.className = 'far fa-circle';
+    });
+
+    // Mark clicked option: filled dot + highlight
     btnElement.classList.add('selected');
+    const icon = btnElement.querySelector('i');
+    if (icon) icon.className = 'fas fa-circle';
+
     selectedOption   = optIndex;
     nextBtn.disabled = false;
   }
@@ -530,10 +573,25 @@
       motherTongue: document.getElementById('motherTongue').value
     };
 
+    // Basic required field check
     if (!currentUser.name || !currentUser.designation || !currentUser.empNo ||
         !currentUser.mobile || !currentUser.module || !currentUser.office ||
         !currentUser.motherTongue) {
       alert('Please fill all fields.');
+      return;
+    }
+
+    // Emp.No. must be exactly 7 digits
+    if (!/^[0-9]{7}$/.test(currentUser.empNo)) {
+      alert('Employee Number must be exactly 7 digits.');
+      empStatus.textContent = '⚠ Emp.No. must be exactly 7 digits.';
+      empStatus.className = 'emp-status duplicate';
+      return;
+    }
+
+    // Mobile must be 10 digits
+    if (!/^[0-9]{10}$/.test(currentUser.mobile)) {
+      alert('Mobile number must be exactly 10 digits.');
       return;
     }
 
