@@ -94,6 +94,7 @@
       border: 1px solid #cbd5e1;
       border-radius: 30px;
       font-size: 0.9rem;
+      font-family: inherit;
     }
 
     .btn {
@@ -102,18 +103,65 @@
       font-weight: 600; font-size: 0.9rem;
       display: inline-flex; align-items: center; gap: 8px;
       cursor: pointer; transition: 0.2s;
+      font-family: inherit;
     }
     .btn:hover { background: #1d4ed8; }
+    .btn:disabled { background: #94a3b8; cursor: not-allowed; }
     .btn-secondary {
       background: #e2e8f0; color: #334155;
     }
     .btn-secondary:hover { background: #cbd5e1; }
+
+    .filters {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+      align-items: center;
+    }
+    .filters select, .filters input {
+      padding: 10px 14px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      background: white;
+      cursor: pointer;
+    }
+    .filters input { cursor: text; flex: 1; min-width: 200px; }
+    .filters select:focus, .filters input:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 14px 18px;
+    }
+    .stat-card .label {
+      font-size: 0.75rem; color: #64748b;
+      text-transform: uppercase; letter-spacing: 0.6px;
+      margin-bottom: 4px;
+    }
+    .stat-card .value {
+      font-size: 1.6rem; font-weight: 700; color: #1e3a8a;
+    }
 
     /* ================= TABLE ================= */
     .table-wrap {
       overflow-x: auto;
       border-radius: 20px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      border: 1px solid #e2e8f0;
     }
     table {
       width: 100%;
@@ -136,19 +184,29 @@
     }
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: #f8fafc; }
+    tr.rank-1 td { background: #fef9c3 !important; }
+    tr.rank-2 td { background: #f1f5f9 !important; }
+    tr.rank-3 td { background: #ffedd5 !important; }
 
-    .badge {
-      background: #dbeafe;
-      color: #1e40af;
-      padding: 4px 10px;
-      border-radius: 30px;
-      font-weight: 600;
-      font-size: 0.8rem;
+    .rank-col { width: 60px; font-weight: 700; color: #1e3a8a; }
+    .medal { margin-left: 4px; }
+
+    .loading-row, .empty-row {
+      text-align: center;
+      padding: 40px 20px;
+      color: #64748b;
+      font-size: 0.95rem;
     }
-
-    .rank-1 { background: #fef9c3 !important; }
-    .rank-2 { background: #f1f5f9 !important; }
-    .rank-3 { background: #ffedd5 !important; }
+    .err {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 12px 16px;
+      border-radius: 14px;
+      margin-bottom: 14px;
+      font-size: 0.9rem;
+      display: none;
+    }
+    .err.show { display: block; }
 
     .mt-16 { margin-top: 16px; }
     .text-center { text-align: center; }
@@ -171,7 +229,7 @@
       <div class="brand-title">
         <div class="hindi">प्रशासन पैनल</div>
         <div class="english">Admin Dashboard</div>
-        <div class="brand-subtitle">Quiz Results & Configuration</div>
+        <div class="brand-subtitle">Quiz Results &amp; Configuration</div>
       </div>
     </div>
   </div>
@@ -190,12 +248,38 @@
     </div>
   </div>
 
-  <!-- ================= RESULTS TABLE ================= -->
+  <div id="errBox" class="err"></div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="label">Participants</div><div class="value" id="statCount">0</div></div>
+    <div class="stat-card"><div class="label">Top Score</div><div class="value" id="statTop">—</div></div>
+    <div class="stat-card"><div class="label">Fastest Time</div><div class="value" id="statFast">—</div></div>
+  </div>
+
+  <div class="filters">
+    <select id="filterModule">
+      <option value="">All Modules</option>
+      <option value="KOZHIKODE">KOZHIKODE</option>
+      <option value="THRISSUR">THRISSUR</option>
+    </select>
+    <select id="filterOffice">
+      <option value="">All Offices</option>
+      <option value="RBO-1">RBO-1</option>
+      <option value="RBO-2">RBO-2</option>
+      <option value="RBO-3">RBO-3</option>
+      <option value="RBO-4">RBO-4</option>
+      <option value="RBO-5">RBO-5</option>
+      <option value="RBO-6">RBO-6</option>
+      <option value="AO">AO</option>
+    </select>
+    <input id="searchBox" type="text" placeholder="Search by name or Emp No...">
+  </div>
+
   <div class="table-wrap">
     <table id="resultsTable">
       <thead>
         <tr>
-          <th>#</th>
+          <th class="rank-col">#</th>
           <th>Name</th>
           <th>Designation</th>
           <th>Emp.No.</th>
@@ -207,28 +291,190 @@
           <th>Time (s)</th>
         </tr>
       </thead>
-      <tbody id="resultsBody"></tbody>
+      <tbody id="resultsBody">
+        <tr><td colspan="10" class="loading-row"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
+      </tbody>
     </table>
   </div>
+
   <p class="mt-16 text-center" style="color:#64748b; font-size:0.9rem;">
     Tie breaker: fastest with more correct answers wins. Top 3 highlighted.
   </p>
 </div>
 
 <script>
-  // ⚠️ REPLACE with your deployed Web App URL (same as index.html)
-  const API_URL = 'https://script.google.com/macros/s/AKfycbyCS2NI7GMc2__yxtokn__S4-pk3nqhUwz1tZzD7TkuGelzWsgV_yrd5lx9nQZeI8TV/exec';
+  /* ============================================================
+     >>> PASTE YOUR APPS SCRIPT WEB APP URL HERE <<<
+     (Same URL as in index.html — ends with /exec)
+     ============================================================ */
+  const API_URL = 'PASTE_YOUR_REAL_URL_HERE';
 
-  // 🔒 OPTIONAL: simple password gate. Remove if not needed.
-  const ADMIN_PASSWORD = 'admin123';
+  let allRows = [];
 
   const resultsBody = document.getElementById('resultsBody');
   const refreshBtn  = document.getElementById('refreshBtn');
   const logoutBtn   = document.getElementById('logoutBtn');
+  const errBox      = document.getElementById('errBox');
+  const searchBox   = document.getElementById('searchBox');
+  const filterMod   = document.getElementById('filterModule');
+  const filterOff   = document.getElementById('filterOffice');
 
-  // ---------- Password gate ----------
-  (function gate() {
-    const entered = prompt('Enter admin password:');
-    if (entered !== ADMIN_PASSWORD) {
-      document.body.innerHTML = '<div style="padding:60px;text-align:center;font-family:sans-serif;">' +
-        '<h2>🚫 Access Denied
+  /* ---------- JSONP loader ---------- */
+  function jsonpRequest(action, params) {
+    return new Promise(function(resolve, reject) {
+      var cbName = 'jsonpCb_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+      var scriptEl = document.createElement('script');
+
+      var timeout = setTimeout(function() {
+        cleanup();
+        reject(new Error('Request timed out'));
+      }, 15000);
+
+      function cleanup() {
+        clearTimeout(timeout);
+        try { delete window[cbName]; } catch (e) {}
+        if (scriptEl && scriptEl.parentNode) scriptEl.parentNode.removeChild(scriptEl);
+      }
+
+      window[cbName] = function(data) {
+        cleanup();
+        resolve(data);
+      };
+
+      var qs = '?action=' + encodeURIComponent(action) + '&callback=' + cbName;
+      if (params) {
+        for (var k in params) {
+          qs += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+        }
+      }
+
+      scriptEl.src = API_URL + qs;
+      scriptEl.onerror = function() { cleanup(); reject(new Error('Network error')); };
+      document.body.appendChild(scriptEl);
+    });
+  }
+
+  /* ---------- Load data ---------- */
+  function loadResults() {
+    refreshBtn.disabled = true;
+    refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+    errBox.classList.remove('show');
+    resultsBody.innerHTML = '<tr><td colspan="10" class="loading-row"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+
+    jsonpRequest('results')
+      .then(function(data) {
+        if (data && data.error) throw new Error(data.error);
+        allRows = (data && data.results) ? data.results : [];
+        render();
+      })
+      .catch(function(err) {
+        errBox.textContent = 'Failed to load results: ' + err.message;
+        errBox.classList.add('show');
+        resultsBody.innerHTML = '<tr><td colspan="10" class="empty-row" style="color:#991b1b;">⚠ ' + err.message + '</td></tr>';
+      })
+      .finally(function() {
+        refreshBtn.disabled = false;
+        refreshBtn.innerHTML = '<i class="fas fa-sync"></i> Refresh';
+      });
+  }
+
+  /* ---------- Render ---------- */
+  function render() {
+    var q = searchBox.value.trim().toLowerCase();
+    var m = filterMod.value;
+    var o = filterOff.value;
+
+    var rows = allRows.slice();
+
+    if (m) rows = rows.filter(function(r) { return (r.module || '') === m; });
+    if (o) rows = rows.filter(function(r) { return (r.office || '') === o; });
+    if (q) {
+      rows = rows.filter(function(r) {
+        return (r.name || '').toLowerCase().indexOf(q) !== -1
+            || String(r.empNo || '').indexOf(q) !== -1;
+      });
+    }
+
+    // Sort: score desc, then time asc
+    rows.sort(function(a, b) {
+      if ((b.score || 0) !== (a.score || 0)) return (b.score || 0) - (a.score || 0);
+      return (a.time || 0) - (b.time || 0);
+    });
+
+    // Stats
+    document.getElementById('statCount').textContent = rows.length;
+    if (rows.length) {
+      document.getElementById('statTop').textContent = rows[0].score || 0;
+      var fastest = rows.reduce(function(min, r) {
+        return (r.time || 99999) < (min.time || 99999) ? r : min;
+      }, rows[0]);
+      document.getElementById('statFast').textContent = (fastest.time || 0) + 's';
+    } else {
+      document.getElementById('statTop').textContent = '—';
+      document.getElementById('statFast').textContent = '—';
+    }
+
+    // Body
+    if (!rows.length) {
+      resultsBody.innerHTML = '<tr><td colspan="10" class="empty-row">No matching entries.</td></tr>';
+      return;
+    }
+
+    var html = '';
+    rows.forEach(function(r, i) {
+      var rank = i + 1;
+      var cls = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : '';
+      var medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+
+      html += '<tr class="' + cls + '">' +
+        '<td class="rank-col">' + rank + ' <span class="medal">' + medal + '</span></td>' +
+        '<td>' + esc(r.name) + '</td>' +
+        '<td>' + esc(r.designation) + '</td>' +
+        '<td>' + esc(r.empNo) + '</td>' +
+        '<td>' + esc(r.mobile) + '</td>' +
+        '<td>' + esc(r.module) + '</td>' +
+        '<td>' + esc(r.office) + '</td>' +
+        '<td>' + esc(r.motherTongue) + '</td>' +
+        '<td style="font-weight:700;color:#1e3a8a;">' + (r.score || 0) + '</td>' +
+        '<td>' + (r.time || 0) + 's</td>' +
+      '</tr>';
+    });
+    resultsBody.innerHTML = html;
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /* ---------- Events ---------- */
+  refreshBtn.addEventListener('click', loadResults);
+  searchBox.addEventListener('input', render);
+  filterMod.addEventListener('change', render);
+  filterOff.addEventListener('change', render);
+  logoutBtn.addEventListener('click', function() {
+    if (confirm('Log out and close the dashboard?')) {
+      window.location.href = 'index.html';
+    }
+  });
+
+  /* ---------- Load config time (optional, for the Open/Close fields) ---------- */
+  function loadConfig() {
+    jsonpRequest('config').then(function(cfg) {
+      if (cfg.openTime)  document.getElementById('openTime').value  = cfg.openTime;
+      if (cfg.closeTime) document.getElementById('closeTime').value = cfg.closeTime;
+    }).catch(function() {});
+  }
+
+  /* ---------- Init ---------- */
+  loadResults();
+  loadConfig();
+
+  /* Auto-refresh every 30 seconds */
+  setInterval(loadResults, 30000);
+</script>
+</body>
+</html>
