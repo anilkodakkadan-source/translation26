@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Admin Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+      background: #f5f7fc;
+      min-height: 100vh;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app-container {
+      max-width: 1300px;
+      width: 100%;
+      background: white;
+      border-radius: 36px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      padding: 0 32px 28px;
+      overflow: hidden;
+    }
+
+    /* ================= HEADER ================= */
+    .brand-header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #0369a1 100%);
+      margin: 0 -32px 24px;
+      padding: 22px 32px;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+      border-radius: 36px 36px 0 0;
+      box-shadow: 0 6px 18px -6px rgba(15, 23, 42, 0.45);
+      position: relative;
+      overflow: hidden;
+    }
+    .brand-header::after {
+      content: "";
+      position: absolute;
+      right: -60px; top: -60px;
+      width: 220px; height: 220px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 50%;
+    }
+    .brand-left { display: flex; align-items: center; gap: 16px; z-index: 1; }
+    .brand-logo {
+      width: 56px; height: 56px;
+      background: rgba(255,255,255,0.18);
+      border: 2px solid rgba(255,255,255,0.35);
+      border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; color: #fff;
+      backdrop-filter: blur(4px);
+    }
+    .brand-title .hindi   { font-size: 1.25rem; font-weight: 700; color:#fff; letter-spacing:0.3px; }
+    .brand-title .english { font-size: 0.95rem; font-weight: 500; color:#e0f2fe; text-transform:uppercase; letter-spacing:1.2px; margin-top:2px; }
+    .brand-subtitle       { font-size: 0.78rem; color: #bae6fd; margin-top: 4px; letter-spacing: 0.4px; }
+
+    /* ================= CONTROLS ================= */
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .bilingual { display: flex; flex-direction: column; gap: 2px; line-height: 1.2; }
+    .hindi    { font-size: 1.3rem; font-weight: 600; color: #1e293b; }
+    .english  { font-size: 1rem; font-weight: 500; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .time-controls {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+      background: #f8fafc;
+      padding: 12px 20px;
+      border-radius: 60px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+    }
+    .time-controls label { font-weight: 600; font-size: 0.9rem; color: #334155; }
+    .time-controls input {
+      padding: 8px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 30px;
+      font-size: 0.9rem;
+    }
+
+    .btn {
+      background: #2563eb; color: white; border: none;
+      padding: 10px 20px; border-radius: 40px;
+      font-weight: 600; font-size: 0.9rem;
+      display: inline-flex; align-items: center; gap: 8px;
+      cursor: pointer; transition: 0.2s;
+    }
+    .btn:hover { background: #1d4ed8; }
+    .btn-secondary {
+      background: #e2e8f0; color: #334155;
+    }
+    .btn-secondary:hover { background: #cbd5e1; }
+
+    /* ================= TABLE ================= */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+    th {
+      background: #1e293b;
+      color: white;
+      padding: 14px 12px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-align: left;
+      white-space: nowrap;
+    }
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 0.9rem;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f8fafc; }
+
+    .badge {
+      background: #dbeafe;
+      color: #1e40af;
+      padding: 4px 10px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    .rank-1 { background: #fef9c3 !important; }
+    .rank-2 { background: #f1f5f9 !important; }
+    .rank-3 { background: #ffedd5 !important; }
+
+    .mt-16 { margin-top: 16px; }
+    .text-center { text-align: center; }
+
+    @media (max-width: 700px) {
+      .app-container { padding: 0 20px 20px; }
+      .brand-header  { margin: 0 -20px 20px; padding: 18px 20px; }
+      .brand-title .hindi { font-size: 1rem; }
+      .brand-title .english { font-size: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+  <!-- ================= HEADER ================= -->
+  <div class="brand-header">
+    <div class="brand-left">
+      <div class="brand-logo"><i class="fas fa-shield-alt"></i></div>
+      <div class="brand-title">
+        <div class="hindi">प्रशासन पैनल</div>
+        <div class="english">Admin Dashboard</div>
+        <div class="brand-subtitle">Quiz Results & Configuration</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= ADMIN CONTROLS ================= -->
+  <div class="admin-header">
+    <div class="bilingual">
+      <span class="hindi">प्रतिभागी परिणाम</span>
+      <span class="english">Participant Results</span>
+    </div>
+    <div class="time-controls">
+      <label>Open <input type="time" id="openTime" value="00:00"></label>
+      <label>Close <input type="time" id="closeTime" value="23:59"></label>
+      <button class="btn" id="refreshBtn"><i class="fas fa-sync"></i> Refresh</button>
+      <button class="btn btn-secondary" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Exit</button>
+    </div>
+  </div>
+
+  <!-- ================= RESULTS TABLE ================= -->
+  <div class="table-wrap">
+    <table id="resultsTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Designation</th>
+          <th>Emp.No.</th>
+          <th>Mobile</th>
+          <th>Module</th>
+          <th>Office</th>
+          <th>Mother Tongue</th>
+          <th>Score</th>
+          <th>Time (s)</th>
+        </tr>
+      </thead>
+      <tbody id="resultsBody"></tbody>
+    </table>
+  </div>
+  <p class="mt-16 text-center" style="color:#64748b; font-size:0.9rem;">
+    Tie breaker: fastest with more correct answers wins. Top 3 highlighted.
+  </p>
+</div>
+
+<script>
+  // ⚠️ REPLACE with your deployed Web App URL (same as index.html)
+  const API_URL = 'https://script.google.com/macros/s/AKfycbyCS2NI7GMc2__yxtokn__S4-pk3nqhUwz1tZzD7TkuGelzWsgV_yrd5lx9nQZeI8TV/exec';
+
+  // 🔒 OPTIONAL: simple password gate. Remove if not needed.
+  const ADMIN_PASSWORD = 'admin123';
+
+  const resultsBody = document.getElementById('resultsBody');
+  const refreshBtn  = document.getElementById('refreshBtn');
+  const logoutBtn   = document.getElementById('logoutBtn');
+
+  // ---------- Password gate ----------
+  (function gate() {
+    const entered = prompt('Enter admin password:');
+    if (entered !== ADMIN_PASSWORD) {
+      document.body.innerHTML = '<div style="padding:60px;text-align:center;font-family:sans-serif;">' +
+        '<h2>🚫 Access Denied
