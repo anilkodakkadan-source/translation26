@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bilingual Quiz · Participant & Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+      background: #f5f7fc;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+
+    .app-container {
+      max-width: 1100px;
+      width: 100%;
+      background: white;
+      border-radius: 36px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      padding: 28px 32px;
+      transition: all 0.2s;
+    }
+
+    .bilingual { display: flex; flex-direction: column; gap: 2px; line-height: 1.2; }
+    .hindi { font-size: 1.3rem; font-weight: 600; color: #1e293b; letter-spacing: 0.3px; }
+    .english { font-size: 1rem; font-weight: 500; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .title-block {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+
+    .toggle-admin {
+      background: #1e293b;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .toggle-admin:hover { background: #0f172a; }
+
+    .login-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px 24px;
+      margin: 16px 0 24px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #334155;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .field input, .field select {
+      padding: 12px 16px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 16px;
+      font-size: 1rem;
+      background: #f8fafc;
+      transition: 0.2s;
+    }
+    .field input:focus, .field select:focus {
+      outline: none;
+      border-color: #2563eb;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 16px 24px;
+      border-radius: 60px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: 0.2s;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .btn-primary:hover:not(:disabled) { background: #1d4ed8; transform: scale(1.01); }
+    .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
+
+    .quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .timer-section { display: flex; align-items: center; gap: 16px; }
+    .timer-circle {
+      background: #1e293b;
+      color: white;
+      border-radius: 40px;
+      padding: 8px 18px;
+      font-weight: 700;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 10px;
+      background: #e2e8f0;
+      border-radius: 20px;
+      overflow: hidden;
+      margin: 12px 0 20px;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 100%;
+      background: #2563eb;
+      transition: width 1s linear;
+    }
+
+    .question-text {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #0f172a;
+      margin: 16px 0 24px;
+      line-height: 1.4;
+      padding: 12px 0 12px 20px;
+      border-left: 6px solid #2563eb;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 20px 0 28px;
+    }
+    .option-btn {
+      background: #f1f5f9;
+      border: 2px solid #e2e8f0;
+      border-radius: 24px;
+      padding: 20px 16px;
+      font-size: 1.05rem;
+      font-weight: 500;
+      text-align: left;
+      cursor: pointer;
+      transition: 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .option-btn i { font-size: 1.2rem; color: #64748b; width: 24px; }
+    .option-btn:hover:not(:disabled) { background: #e2e8f0; border-color: #94a3b8; }
+    .option-btn.selected { background: #dbeafe; border-color: #2563eb; color: #1e3a8a; }
+    .option-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+    .completion-box {
+      text-align: center;
+      padding: 48px 24px;
+      background: #f0fdf4;
+      border-radius: 32px;
+      border: 2px solid #bbf7d0;
+    }
+    .completion-box i { font-size: 4rem; color: #16a34a; margin-bottom: 20px; }
+    .completion-box h2 { font-size: 2rem; margin-bottom: 8px; color: #14532d; }
+    .completion-box p  { font-size: 1.2rem; color: #166534; }
+
+    .admin-panel { background: #f8fafc; border-radius: 24px; padding: 24px; margin-top: 16px; }
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .time-controls {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+      background: white;
+      padding: 12px 20px;
+      border-radius: 60px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+    }
+    .time-controls label { font-weight: 600; font-size: 0.9rem; color: #334155; }
+    .time-controls input {
+      padding: 8px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 30px;
+      font-size: 0.9rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    th {
+      background: #1e293b;
+      color: white;
+      padding: 14px 12px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+    td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; }
+    tr:last-child td { border-bottom: none; }
+
+    .badge {
+      background: #dbeafe;
+      color: #1e40af;
+      padding: 4px 10px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    .hidden { display: none !important; }
+    .mt-16 { margin-top: 16px; }
+    .mb-16 { margin-bottom: 16px; }
+    .text-center { text-align: center; }
+
+    @media (max-width: 700px) {
+      .app-container { padding: 20px; }
+      .login-grid, .options-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-container" id="appContainer">
+
+  <!-- ============ HEADER ============ -->
+  <div class="title-block">
+    <div class="bilingual">
+      <span class="hindi">द्विभाषी प्रश्नोत्तरी</span>
+      <span class="english">Bilingual Quiz Portal</span>
+    </div>
+    <button class="toggle-admin" id="adminToggleBtn"><i class="fas fa-user-shield"></i> Admin</button>
+  </div>
+
+  <!-- ============ PARTICIPANT LOGIN ============ -->
+  <div id="loginSection">
+    <div class="bilingual mb-16">
+      <span class="hindi">कृपया अपनी जानकारी भरें</span>
+      <span class="english">Please enter your details</span>
+    </div>
+    <form id="loginForm">
+      <div class="login-grid">
+        <div class="field">
+          <label>नाम / Name</label>
+          <input type="text" id="name" required>
+        </div>
+        <div class="field">
+          <label>पद / Designation</label>
+          <input type="text" id="designation" required>
+        </div>
+        <div class="field">
+          <label>कर्मचारी संख्या / Emp.No.</label>
+          <input type="text" id="empNo" required>
+        </div>
+        <div class="field">
+          <label>मोबाइल / Mobile</label>
+          <input type="tel" id="mobile" required>
+        </div>
+        <div class="field">
+          <label>मॉड्यूल / Module</label>
+          <select id="module" required>
+            <option value="">-- चुनें / Select --</option>
+            <option value="KOZHIKODE">KOZHIKODE</option>
+            <option value="THRISSUR">THRISSUR</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>कार्यालय / Office</label>
+          <select id="office" required>
+            <option value="">-- चुनें / Select --</option>
+            <option value="RBO-1">RBO-1</option>
+            <option value="RBO-2">RBO-2</option>
+            <option value="RBO-3">RBO-3</option>
+            <option value="RBO-4">RBO-4</option>
+            <option value="RBO-5">RBO-5</option>
+            <option value="RBO-6">RBO-6</option>
+            <option value="AO">AO</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>मातृभाषा / Mother Tongue</label>
+          <select id="motherTongue" required>
+            <option value="">-- चुनें / Select --</option>
+            <option value="MALAYALAM">MALAYALAM</option>
+            <option value="HINDI">HINDI</option>
+            <option value="OTHERS">OTHERS</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn-primary" id="startQuizBtn">
+        <i class="fas fa-play"></i> प्रारंभ करें / Start Quiz
+      </button>
+    </form>
+  </div>
+
+  <!-- ============ QUIZ SECTION ============ -->
+  <div id="quizSection" class="hidden">
+    <div class="quiz-header">
+      <div class="bilingual">
+        <span class="hindi">प्रश्न <span id="currentQNo">1</span>/<span id="totalQNo">20</span></span>
+        <span class="english">Question <span id="currentQNoEn">1</span>/<span id="totalQNoEn">20</span></span>
+      </div>
+      <div class="timer-section">
+        <div class="timer-circle"><i class="fas fa-hourglass-half"></i> <span id="timerDisplay">30</span>s</div>
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-fill" id="progressFill" style="width: 100%;"></div>
+    </div>
+    <div class="question-text" id="questionText">Loading question...</div>
+    <div class="options-grid" id="optionsGrid"></div>
+    <button class="btn-primary" id="nextBtn" disabled>
+      <i class="fas fa-arrow-right"></i> अगला / Next
+    </button>
+  </div>
+
+  <!-- ============ COMPLETION ============ -->
+  <div id="completionSection" class="hidden">
+    <div class="completion-box">
+      <i class="fas fa-check-circle"></i>
+      <h2>सफलतापूर्वक पूरा हुआ</h2>
+      <p>Successfully completed, thank you for participation, results will be announced later.</p>
+    </div>
+  </div>
+
+  <!-- ============ ADMIN PANEL ============ -->
+  <div id="adminSection" class="hidden">
+    <div class="admin-header">
+      <div class="bilingual">
+        <span class="hindi">प्रशासन पैनल</span>
+        <span class="english">Admin Dashboard</span>
+      </div>
+      <div class="time-controls">
+        <label>Open <input type="time" id="openTime" value="00:00"></label>
+        <label>Close <input type="time" id="closeTime" value="23:59"></label>
+        <button class="toggle-admin" id="backToUserBtn" style="background:#475569;">
+          <i class="fas fa-arrow-left"></i> Back
+        </button>
+      </div>
+    </div>
+    <div style="overflow-x: auto;">
+      <table id="resultsTable">
+        <thead>
+          <tr>
+            <th>Name</th><th>Designation</th><th>Emp.No.</th><th>Mobile</th>
+            <th>Module</th><th>Office</th><th>Mother Tongue</th>
+            <th>Score</th><th>Time (s)</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+    </div>
+    <p class="mt-16 text-center" style="color:#64748b; font-size:0.9rem;">
+      Tie breaker: fastest with more correct answers wins.
+    </p>
+  </div>
+</div>
+
+<script>
+  // ============================================================
+  //  CONFIG
+  // ============================================================
+  // ⚠️ REPLACE with your deployed Web App URL
+  const API_URL = 'https://script.google.com/macros/s/AKfycbyCS2NI7GMc2__yxtokn__S4-pk3nqhUwz1tZzD7TkuGelzWsgV_yrd5lx9nQZeI8TV/exec';
+
+  const TIMER_SECONDS = 30;
+
+  // ============================================================
+  //  STATE
+  // ============================================================
+  let currentUser          = null;
+  let QUIZ_QUESTIONS       = [];    // populated from backend
+  let SESSION_ID           = null;  // returned from backend
+  let currentQuestionIndex = 0;
+  let userAnswers          = [];    // selected option indices per question
+  let timerInterval        = null;
+  let timeLeft             = TIMER_SECONDS;
+  let totalTimeTaken       = 0;
+  let quizActive           = false;
+  let selectedOption       = null;
+
+  // ============================================================
+  //  DOM
+  // ============================================================
+  const loginSection      = document.getElementById('loginSection');
+  const quizSection       = document.getElementById('quizSection');
+  const completionSection = document.getElementById('completionSection');
+  const adminSection      = document.getElementById('adminSection');
+  const adminToggleBtn    = document.getElementById('adminToggleBtn');
+  const backToUserBtn     = document.getElementById('backToUserBtn');
+  const loginForm         = document.getElementById('loginForm');
+  const startQuizBtn      = document.getElementById('startQuizBtn');
+  const questionText      = document.getElementById('questionText');
+  const optionsGrid       = document.getElementById('optionsGrid');
+  const nextBtn           = document.getElementById('nextBtn');
+  const timerDisplay      = document.getElementById('timerDisplay');
+  const progressFill      = document.getElementById('progressFill');
+  const currentQNo        = document.getElementById('currentQNo');
+  const totalQNo          = document.getElementById('totalQNo');
+  const currentQNoEn      = document.getElementById('currentQNoEn');
+  const totalQNoEn        = document.getElementById('totalQNoEn');
+  const openTimeInput     = document.getElementById('openTime');
+  const closeTimeInput    = document.getElementById('closeTime');
+  const resultsBody       = document.getElementById('resultsBody');
+
+  // ============================================================
+  //  HELPERS
+  // ============================================================
+  function showSection(section) {
+    [loginSection, quizSection, completionSection, adminSection]
+      .forEach(s => s.classList.add('hidden'));
+    section.classList.remove('hidden');
+  }
+
+  function resetQuizState() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval        = null;
+    currentQuestionIndex = 0;
+    userAnswers          = [];
+    totalTimeTaken       = 0;
+    quizActive           = false;
+    selectedOption       = null;
+  }
+
+  // ============================================================
+  //  BACKEND CALLS
+  // ============================================================
+  async function fetchConfig() {
+    try {
+      const res = await fetch(`${API_URL}?action=config`);
+      return await res.json();
+    } catch (err) {
+      console.error('Config fetch failed', err);
+      return { openTime: '00:00', closeTime: '23:59' };
+    }
+  }
+
+  async function fetchQuestions() {
+    const res  = await fetch(`${API_URL}?action=questions`);
+    return await res.json();
+  }
+
+  async function gradeOnServer(sessionId, answers) {
+    try {
+      const url = `${API_URL}?action=grade&sessionId=${encodeURIComponent(sessionId)}` +
+                  `&answers=${encodeURIComponent(JSON.stringify(answers))}`;
+      const res = await fetch(url);
+      return await res.json();
+    } catch (err) {
+      console.error('Grading failed', err);
+      return { score: 0, total: 0 };
+    }
+  }
+
+  async function saveResultToBackend(result) {
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(result)
+      });
+      console.log('Saved to backend:', result);
+    } catch (err) {
+      console.error('Backend save failed:', err);
+    }
+  }
+
+  async function fetchResultsFromBackend() {
+    try {
+      const res  = await fetch(`${API_URL}?action=results`);
+      const data = await res.json();
+      return data.results || [];
+    } catch (err) {
+      console.error('Fetch results failed:', err);
+      return [];
+    }
+  }
+
+  // ============================================================
+  //  RENDER QUESTION
+  // ============================================================
+  function renderQuestion(index) {
+    const q = QUIZ_QUESTIONS[index];
+    if (!q) return;
+
+    currentQNo.textContent   = index + 1;
+    currentQNoEn.textContent = index + 1;
+
+    questionText.textContent = q.question;
+    optionsGrid.innerHTML    = '';
+
+    q.options.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'option-btn';
+      btn.innerHTML = `<i class="far fa-circle"></i> ${opt}`;
+      btn.dataset.index = i;
+      btn.addEventListener('click', () => handleOptionSelect(i, btn));
+      optionsGrid.appendChild(btn);
+    });
+
+    selectedOption   = null;
+    nextBtn.disabled = true;
+
+    // Timer reset
+    timeLeft = TIMER_SECONDS;
+    timerDisplay.textContent = timeLeft;
+    progressFill.style.width = '100%';
+
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      timeLeft -= 1;
+      timerDisplay.textContent = timeLeft;
+      progressFill.style.width = `${(timeLeft / TIMER_SECONDS) * 100}%`;
+
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+
+        if (quizActive) {
+          // auto-record (null if not answered) and advance
+          if (userAnswers[currentQuestionIndex] === undefined) {
+            userAnswers[currentQuestionIndex] = selectedOption;
+          }
+          totalTimeTaken += TIMER_SECONDS;
+          currentQuestionIndex++;
+          if (currentQuestionIndex < QUIZ_QUESTIONS.length) {
+            renderQuestion(currentQuestionIndex);
+          } else {
+            quizActive = false;
+            finishQuiz();
+          }
+        }
+      }
+    }, 1000);
+  }
+
+  function handleOptionSelect(optIndex, btnElement) {
+    if (!quizActive) return;
+    document.querySelectorAll('.option-btn')
+      .forEach(b => b.classList.remove('selected'));
+    btnElement.classList.add('selected');
+    selectedOption   = optIndex;
+    nextBtn.disabled = false;
+  }
+
+  // ============================================================
+  //  NEXT BUTTON
+  // ============================================================
+  nextBtn.addEventListener('click', () => {
+    if (!quizActive || selectedOption === null) return;
+
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+
+    if (userAnswers[currentQuestionIndex] === undefined) {
+      userAnswers[currentQuestionIndex] = selectedOption;
+    }
+
+    totalTimeTaken += (TIMER_SECONDS - timeLeft);
+
+    currentQuestionIndex++;
+    if (currentQuestionIndex < QUIZ_QUESTIONS.length) {
+      renderQuestion(currentQuestionIndex);
+    } else {
+      quizActive = false;
+      finishQuiz();
+    }
+  });
+
+  // ============================================================
+  //  FINISH QUIZ  →  server-side grading + save
+  // ============================================================
+  async function finishQuiz() {
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+
+    // ⚠️ Score is calculated on the SERVER so the answer key stays hidden.
+    let score = 0;
+    const total = QUIZ_QUESTIONS.length;
+
+    try {
+      const gradeData = await gradeOnServer(SESSION_ID, userAnswers);
+      score = gradeData.score || 0;
+    } catch (err) {
+      console.error('Grading error', err);
+    }
+
+    const result = {
+      ...currentUser,
+      score: score,
+      totalQuestions: total,
+      time: totalTimeTaken
+    };
+
+    await saveResultToBackend(result);
+
+    showSection(completionSection);
+    resetQuizState();
+  }
+
+  // ============================================================
+  //  LOGIN SUBMIT  →  fetch random 20 questions
+  // ============================================================
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // 1. Check open / close time from backend config
+    const cfg   = await fetchConfig();
+    const open  = cfg.openTime  || '00:00';
+    const close = cfg.closeTime || '23:59';
+    const now   = new Date();
+    const nowStr = now.getHours().toString().padStart(2, '0') + ':' +
+                   now.getMinutes().toString().padStart(2, '0');
+    if (nowStr < open || nowStr > close) {
+      alert(`Quiz opens at ${open} and closes at ${close}. Please try later.`);
+      return;
+    }
+
+    // 2. Capture user info
+    currentUser = {
+      name:         document.getElementById('name').value.trim(),
+      designation:  document.getElementById('designation').value.trim(),
+      empNo:        document.getElementById('empNo').value.trim(),
+      mobile:       document.getElementById('mobile').value.trim(),
+      module:       document.getElementById('module').value,
+      office:       document.getElementById('office').value,
+      motherTongue: document.getElementById('motherTongue').value
+    };
+
+    if (!currentUser.name || !currentUser.designation || !currentUser.empNo ||
+        !currentUser.mobile || !currentUser.module || !currentUser.office ||
+        !currentUser.motherTongue) {
+      alert('Please fill all fields.');
+      return;
+    }
+
+    // 3. Fetch random 20 questions from backend
+    startQuizBtn.disabled = true;
+    startQuizBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading questions...';
+
+    try {
+      const data = await fetchQuestions();
+
+      if (!data.questions || data.questions.length === 0) {
+        alert('Could not load questions. Please try again later.');
+        return;
+      }
+
+      QUIZ_QUESTIONS = data.questions;
+      SESSION_ID     = data.sessionId;
+
+      // Update total counts in UI
+      totalQNo.textContent   = QUIZ_QUESTIONS.length;
+      totalQNoEn.textContent = QUIZ_QUESTIONS.length;
+
+      // 4. Start quiz
+      resetQuizState();
+      quizActive           = true;
+      showSection(quizSection);
+      currentQuestionIndex = 0;
+      renderQuestion(0);
+
+    } catch (err) {
+      console.error(err);
+      alert('Error loading questions. Please try again.');
+    } finally {
+      startQuizBtn.disabled  = false;
+      startQuizBtn.innerHTML = '<i class="fas fa-play"></i> प्रारंभ करें / Start Quiz';
+    }
+  });
+
+  // ============================================================
+  //  ADMIN
+  // ============================================================
+  adminToggleBtn.addEventListener('click', async () => {
+    await renderAdminResults();
+    showSection(adminSection);
+  });
+
+  backToUserBtn.addEventListener('click', () => {
+    resetQuizState();
+    showSection(loginSection);
+  });
+
+  async function renderAdminResults() {
+    resultsBody.innerHTML = '<tr><td colspan="9" style="text-align:center;">Loading...</td></tr>';
+
+    const results = await fetchResultsFromBackend();
+
+    if (!results.length) {
+      resultsBody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No results yet.</td></tr>';
+      return;
+    }
+
+    resultsBody.innerHTML = results.map(r => `
+      <tr>
+        <td>${r.name || ''}</td>
+        <td>${r.designation || ''}</td>
+        <td>${r.empNo || ''}</td>
+        <td>${r.mobile || ''}</td>
+        <td><span class="badge">${r.module || ''}</span></td>
+        <td>${r.office || ''}</td>
+        <td>${r.motherTongue || ''}</td>
+        <td><strong>${r.score}</strong> / ${r.totalQuestions || '—'}</td>
+        <td>${r.time}s</td>
+      </tr>
+    `).join('');
+  }
+
+  // ============================================================
+  //  INIT
+  // ============================================================
+  showSection(loginSection);
+
+  window.addEventListener('beforeunload', () => {
+    if (timerInterval) clearInterval(timerInterval);
+  });
+</script>
+</body>
+</html>
