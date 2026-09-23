@@ -17,6 +17,7 @@
       justify-content: center;
       align-items: center;
       padding: 16px;
+      flex-wrap: wrap;
     }
 
     .app-container {
@@ -56,15 +57,14 @@
     .brand-left { display: flex; align-items: center; gap: 16px; z-index: 1; }
     .brand-logo {
       width: 64px; height: 64px;
-      background: #ffffff;
-      border: 2px solid rgba(255,255,255,0.55);
+      background: rgba(255,255,255,0.18);
+      border: 2px solid rgba(255,255,255,0.35);
       border-radius: 18px;
       display: flex; align-items: center; justify-content: center;
-      padding: 6px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      font-size: 1.8rem; color: #fff;
+      backdrop-filter: blur(4px);
       flex-shrink: 0;
     }
-    .brand-logo img { height: 100%; width: auto; display: block; }
     .brand-title .hindi   { font-size: 1.25rem; font-weight: 700; color:#fff; letter-spacing:0.3px; }
     .brand-title .english { font-size: 0.95rem; font-weight: 500; color:#e0f2fe; text-transform:uppercase; letter-spacing:1.2px; margin-top:2px; }
     .brand-subtitle       { font-size: 0.78rem; color: #bae6fd; margin-top: 4px; letter-spacing: 0.4px; }
@@ -93,6 +93,7 @@
       font-size: 1rem;
       background: #f8fafc;
       transition: 0.2s;
+      font-family: inherit;
     }
     .field input:focus, .field select:focus {
       outline: none;
@@ -105,6 +106,18 @@
     .emp-status.ok        { color: #16a34a; }
     .emp-status.duplicate { color: #dc2626; }
 
+    .disclaimer {
+      font-size: 0.78rem;
+      color: #64748b;
+      text-align: center;
+      margin: -4px 0 16px;
+      line-height: 1.4;
+      padding: 8px 12px;
+      background: #f8fafc;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+    }
+
     .btn-primary {
       background: #2563eb; color: white; border: none;
       padding: 16px 24px; border-radius: 60px;
@@ -112,6 +125,7 @@
       cursor: pointer; transition: 0.2s; width: 100%;
       display: flex; justify-content: center; align-items: center;
       gap: 12px; margin-top: 8px;
+      font-family: inherit;
     }
     .btn-primary:hover:not(:disabled) { background: #1d4ed8; transform: scale(1.01); }
     .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
@@ -187,13 +201,23 @@
     .hidden { display: none !important; }
     .mb-16  { margin-bottom: 16px; }
 
+    footer.site-footer {
+      text-align: center;
+      font-size: 11px;
+      color: #94a3b8;
+      padding: 16px 10px 0;
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
     @media (max-width: 700px) {
       .app-container { padding: 0 20px 20px; }
       .brand-header  { margin: 0 -20px 20px; padding: 18px 20px; }
       .login-grid, .options-grid { grid-template-columns: 1fr; }
       .brand-title .hindi { font-size: 1rem; }
       .brand-title .english { font-size: 0.8rem; }
-      .brand-logo { width: 52px; height: 52px; }
+      .brand-logo { width: 52px; height: 52px; font-size: 1.4rem; }
     }
   </style>
 </head>
@@ -203,11 +227,9 @@
   <!-- ================= HEADER ================= -->
   <div class="brand-header">
     <div class="brand-left">
-      <div class="brand-logo">
-       <!-- <img src="https://upload.wikimedia.org/wikipedia/commons/c/cc/SBI-logo.svg" alt="SBI"> -->
-      </div>
+      <div class="brand-logo"><i class="fas fa-language"></i></div>
       <div class="brand-title">
-        <div class="hindi">अनुवाद प्रतियोगिता 2026 </div>
+        <div class="hindi">अनुवाद प्रतियोगिता 2026</div>
         <div class="english">Translation Competition 2026</div>
         <div class="brand-subtitle">Official Language Section</div>
       </div>
@@ -220,7 +242,13 @@
       <span class="hindi">कृपया अपनी जानकारी भरें</span>
       <span class="english">Please enter your details</span>
     </div>
-    
+
+    <p class="disclaimer">
+      This is an internal registration form for the Translation Competition 2026,
+      open only to employees of this organisation. No passwords, credit card details,
+      or other sensitive information are collected on this page.
+    </p>
+
     <form id="loginForm">
       <div class="login-grid">
         <div class="field">
@@ -305,11 +333,15 @@
     <div class="completion-box">
       <i class="fas fa-check-circle"></i>
       <h2>सफलतापूर्वक पूरा हुआ</h2>
-      <p>Successfully completed, thank you for participation, results will be announced later.</p>
+      <p>Successfully completed. Thank you for your participation — results will be announced later.</p>
     </div>
   </div>
 
 </div>
+
+<footer class="site-footer">
+  © 2026 Official Language Section · Internal use only · No personal data is shared externally
+</footer>
 
 <script>
   // ⚠️ REPLACE with your deployed Web App URL
@@ -411,7 +443,6 @@
 
   // ---------- Emp.No. live check (7 digits, digits only) ----------
   empNoInput.addEventListener('input', () => {
-    // Strip non-digits
     empNoInput.value = empNoInput.value.replace(/[^0-9]/g, '');
     const val = empNoInput.value.trim();
 
@@ -496,14 +527,12 @@
   function handleOptionSelect(optIndex, btnElement) {
     if (!quizActive) return;
 
-    // Reset all options to empty circle, remove highlight
     document.querySelectorAll('.option-btn').forEach(b => {
       b.classList.remove('selected');
       const icon = b.querySelector('i');
       if (icon) icon.className = 'far fa-circle';
     });
 
-    // Mark clicked option: filled dot + highlight
     btnElement.classList.add('selected');
     const icon = btnElement.querySelector('i');
     if (icon) icon.className = 'fas fa-circle';
@@ -553,7 +582,6 @@
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // Open / close check
     const cfg   = await fetchConfig();
     const open  = cfg.openTime  || '00:00';
     const close = cfg.closeTime || '23:59';
@@ -575,7 +603,6 @@
       motherTongue: document.getElementById('motherTongue').value
     };
 
-    // Basic required field check
     if (!currentUser.name || !currentUser.designation || !currentUser.empNo ||
         !currentUser.mobile || !currentUser.module || !currentUser.office ||
         !currentUser.motherTongue) {
@@ -583,7 +610,6 @@
       return;
     }
 
-    // Emp.No. must be exactly 7 digits
     if (!/^[0-9]{7}$/.test(currentUser.empNo)) {
       alert('Employee Number must be exactly 7 digits.');
       empStatus.textContent = '⚠ Emp.No. must be exactly 7 digits.';
@@ -591,7 +617,6 @@
       return;
     }
 
-    // Mobile must be 10 digits
     if (!/^[0-9]{10}$/.test(currentUser.mobile)) {
       alert('Mobile number must be exactly 10 digits.');
       return;
@@ -643,9 +668,5 @@
     if (timerInterval) clearInterval(timerInterval);
   });
 </script>
-  <footer style="text-align:center;font-size:11px;color:#94a3b8;padding:20px 10px 0;max-width:1100px;margin:0 auto;">
-  © 2026 Official Language Section · Internal use only · No personal data is shared externally
-</footer>
-
 </body>
 </html>
